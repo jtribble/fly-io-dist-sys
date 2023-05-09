@@ -28,4 +28,9 @@ type MessageBody struct {
 	Code      *int      `json:"code,omitempty"`
 	Echo      *string   `json:"echo,omitempty"`
 	Id        *string   `json:"id,omitempty"`
+	Message   *int      `json:"message,omitempty"`
+	Messages  *[]int    `json:"messages,omitempty"`
+	Topology  *Topology `json:"topology,omitempty"`
 }
+
+type Topology map[string][]string

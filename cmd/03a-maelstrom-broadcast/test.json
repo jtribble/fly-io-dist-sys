@@ -1,0 +1,50 @@
+[
+  {
+    "src": "c0",
+    "dest": "n0",
+    "body": {
+      "type": "init",
+      "msg_id": 1,
+      "node_id": "n0",
+      "node_ids": ["n0"]
+    }
+  },
+  {
+    "src": "c0",
+    "dest": "n0",
+    "body": {
+      "type": "broadcast",
+      "msg_id": 2,
+      "message": 20
+    }
+  },
+  {
+    "src": "c0",
+    "dest": "n0",
+    "body": {
+      "type": "broadcast",
+      "msg_id": 3,
+      "message": 30
+    }
+  },
+  {
+    "src": "c0",
+    "dest": "n0",
+    "body": {
+      "type": "read",
+      "msg_id": 4
+    }
+  },
+  {
+    "src": "c0",
+    "dest": "n0",
+    "body": {
+      "type": "topology",
+      "topology": {
+        "n0": ["n1", "n2"],
+        "n1": ["n0"],
+        "n2": ["n0"]
+      }
+    }
+  }
+]

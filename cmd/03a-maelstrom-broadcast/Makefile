@@ -7,7 +7,7 @@ help: # See: https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 
 .PHONY: bin
 bin: ## Build the Go binary
-	go build -o bin/
+	go build -o bin/node
 
 .PHONY: run
 run: ## Run main.go
@@ -19,4 +19,4 @@ test: ## Run the simple test with test.json
 
 .PHONY: mtest
 mtest: bin ## Run the maelstrom test
-	maelstrom test -w echo --bin bin/maelstrom-echo --node-count 1 --time-limit 10 --log-stderr
+	maelstrom test -w broadcast --bin bin/node --node-count 1 --time-limit 20 --rate 10
