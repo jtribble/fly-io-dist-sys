@@ -1,5 +1,9 @@
 package maelstrom
 
+import (
+	"github.com/jtribble/fly-io-dist-sys/pkg/slices"
+)
+
 type InitHandler struct {
 	initialized bool
 }
@@ -11,7 +15,7 @@ func (h *InitHandler) HandlesMessageType(msgType string) bool {
 func (h *InitHandler) HandleMessage(node *Node, msg *Message) {
 	if !h.initialized {
 		node.Id = *msg.Body.NodeId
-		node.Peers = *msg.Body.NodeIds
+		node.Peers = slices.Without(*msg.Body.NodeIds, node.Id)
 		node.QueueReply(&Message{
 			Body: MessageBody{
 				Type: "init_ok",

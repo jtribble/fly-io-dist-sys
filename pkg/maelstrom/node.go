@@ -53,6 +53,14 @@ func (n *Node) QueueReply(msg, inReplyTo *Message) {
 	n.outgoingMessages <- msg
 }
 
+func (n *Node) SendMessage(msg *Message) {
+	msg.Src = n.Id
+	msg.Body.MsgId = ptr.ToInt(n.nextMessageId)
+	n.nextMessageId += 1
+	n.inFlightMessages.Add(1)
+	n.outgoingMessages <- msg
+}
+
 func (n *Node) RunUntilInterrupted() {
 	osutils.RunUntilInterrupted(func(ctx context.Context, cancel context.CancelFunc) {
 		go n.handleIncomingMessages(ctx, cancel)

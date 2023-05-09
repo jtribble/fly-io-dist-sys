@@ -21,16 +21,19 @@ func From(line []byte) (*Message, error) {
 type MessageBody struct {
 	Type string `json:"type"`
 
-	MsgId     *int      `json:"msg_id,omitempty"`
-	InReplyTo *int      `json:"in_reply_to,omitempty"`
-	NodeId    *string   `json:"node_id,omitempty"`
-	NodeIds   *[]string `json:"node_ids,omitempty"`
-	Code      *int      `json:"code,omitempty"`
-	Echo      *string   `json:"echo,omitempty"`
-	Id        *string   `json:"id,omitempty"`
-	Message   *int      `json:"message,omitempty"`
-	Messages  *[]int    `json:"messages,omitempty"`
-	Topology  *Topology `json:"topology,omitempty"`
+	MsgId     *int                 `json:"msg_id,omitempty"`
+	InReplyTo *int                 `json:"in_reply_to,omitempty"`
+	NodeId    *string              `json:"node_id,omitempty"`
+	NodeIds   *[]string            `json:"node_ids,omitempty"`
+	Code      *int                 `json:"code,omitempty"`
+	Echo      *string              `json:"echo,omitempty"`
+	Id        *string              `json:"id,omitempty"`
+	Message   *int                 `json:"message,omitempty"`
+	Messages  *[]int               `json:"messages,omitempty"`
+	Topology  *map[string][]string `json:"topology,omitempty"`
+	Gossip    *Gossip              `json:"gossip,omitempty"`
 }
 
-type Topology map[string][]string
+type Gossip struct {
+	Path []string `json:"path"`
+}

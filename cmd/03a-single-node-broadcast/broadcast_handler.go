@@ -2,16 +2,18 @@ package main
 
 import (
 	"github.com/jtribble/fly-io-dist-sys/pkg/maelstrom"
+	"github.com/jtribble/fly-io-dist-sys/pkg/maps"
 )
 
 type BroadcastHandler struct {
 	messages map[int]bool
-	topology *maelstrom.Topology
+	topology map[string][]string
 }
 
 func NewBroadcastHandler() *BroadcastHandler {
 	return &BroadcastHandler{
 		messages: make(map[int]bool),
+		topology: make(map[string][]string),
 	}
 }
 
@@ -40,12 +42,7 @@ func (h *BroadcastHandler) handleBroadcast(node *maelstrom.Node, msg *maelstrom.
 }
 
 func (h *BroadcastHandler) handleRead(node *maelstrom.Node, msg *maelstrom.Message) {
-	messages := make([]int, len(h.messages))
-	i := 0
-	for m := range h.messages {
-		messages[i] = m
-		i += 1
-	}
+	messages := maps.Keys(h.messages)
 	node.QueueReply(&maelstrom.Message{
 		Body: maelstrom.MessageBody{
 			Type:     "read_ok",
@@ -55,7 +52,7 @@ func (h *BroadcastHandler) handleRead(node *maelstrom.Node, msg *maelstrom.Messa
 }
 
 func (h *BroadcastHandler) handleTopology(node *maelstrom.Node, msg *maelstrom.Message) {
-	h.topology = msg.Body.Topology
+	h.topology = *msg.Body.Topology
 	node.QueueReply(&maelstrom.Message{
 		Body: maelstrom.MessageBody{
 			Type: "topology_ok",

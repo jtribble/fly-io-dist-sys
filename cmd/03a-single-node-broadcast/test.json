@@ -13,6 +13,18 @@
     "src": "c0",
     "dest": "n0",
     "body": {
+      "type": "topology",
+      "topology": {
+        "n0": ["n1", "n2"],
+        "n1": ["n0"],
+        "n2": ["n0"]
+      }
+    }
+  },
+  {
+    "src": "c0",
+    "dest": "n0",
+    "body": {
       "type": "broadcast",
       "msg_id": 2,
       "message": 20
@@ -33,18 +45,6 @@
     "body": {
       "type": "read",
       "msg_id": 4
-    }
-  },
-  {
-    "src": "c0",
-    "dest": "n0",
-    "body": {
-      "type": "topology",
-      "topology": {
-        "n0": ["n1", "n2"],
-        "n1": ["n0"],
-        "n2": ["n0"]
-      }
     }
   }
 ]
