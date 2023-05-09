@@ -20,12 +20,10 @@ type Node struct {
 	Id    string
 	Peers []string
 
-	Initialized bool
+	incomingMessages chan *Message
+	outgoingMessages chan *Message
 
-	IncomingMessages chan *Message
-	OutgoingMessages chan *Message
-
-	Handlers []Handler
+	handlers []Handler
 
 	nextMessageId    int
 	inFlightMessages sync.WaitGroup
@@ -33,16 +31,16 @@ type Node struct {
 
 func NewNode() *Node {
 	return &Node{
-		IncomingMessages: make(chan *Message),
-		OutgoingMessages: make(chan *Message),
-		Handlers:         []Handler{&InitHandler{}},
+		incomingMessages: make(chan *Message),
+		outgoingMessages: make(chan *Message),
+		handlers:         []Handler{&InitHandler{}},
 		nextMessageId:    1,
 		inFlightMessages: sync.WaitGroup{},
 	}
 }
 
 func (n *Node) RegisterHandler(h Handler) {
-	n.Handlers = append(n.Handlers, h)
+	n.handlers = append(n.handlers, h)
 }
 
 func (n *Node) QueueReply(msg, inReplyTo *Message) {
@@ -52,7 +50,7 @@ func (n *Node) QueueReply(msg, inReplyTo *Message) {
 	msg.Body.MsgId = ptr.ToInt(n.nextMessageId)
 	n.nextMessageId += 1
 	n.inFlightMessages.Add(1)
-	n.OutgoingMessages <- msg
+	n.outgoingMessages <- msg
 }
 
 func (n *Node) RunUntilInterrupted() {
@@ -63,11 +61,11 @@ func (n *Node) RunUntilInterrupted() {
 		<-ctx.Done()
 
 		// Stop accepting incoming messages
-		close(n.IncomingMessages)
+		close(n.incomingMessages)
 
 		// Wait a while for outgoing messages to finish
 		syncutils.WaitUntilTimeout(&n.inFlightMessages, 10*time.Second)
-		close(n.OutgoingMessages)
+		close(n.outgoingMessages)
 	})
 }
 
@@ -84,7 +82,7 @@ func (n *Node) handleIncomingMessages(ctx context.Context, cancel context.Cancel
 				continue
 			}
 			handled := false
-			for _, h := range n.Handlers {
+			for _, h := range n.handlers {
 				if h.HandlesMessageType(msg.Body.Type) {
 					h.HandleMessage(n, msg)
 					handled = true
@@ -110,7 +108,7 @@ func (n *Node) handleIncomingMessages(ctx context.Context, cancel context.Cancel
 func (n *Node) handleOutgoingMessages() {
 	for {
 		select {
-		case msg := <-n.OutgoingMessages:
+		case msg := <-n.outgoingMessages:
 			n.writeMessageToStdout(msg)
 		}
 	}

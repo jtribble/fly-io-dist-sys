@@ -27,4 +27,5 @@ type MessageBody struct {
 	NodeIds   *[]string `json:"node_ids,omitempty"`
 	Code      *int      `json:"code,omitempty"`
 	Echo      *string   `json:"echo,omitempty"`
+	Id        *string   `json:"id,omitempty"`
 }
