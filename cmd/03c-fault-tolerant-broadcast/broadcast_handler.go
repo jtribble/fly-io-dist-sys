@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/jtribble/fly-io-dist-sys/pkg/log"
 	"github.com/jtribble/fly-io-dist-sys/pkg/maelstrom"
 	"github.com/jtribble/fly-io-dist-sys/pkg/maps"
 	"github.com/jtribble/fly-io-dist-sys/pkg/slices"
@@ -58,7 +59,9 @@ func (h *BroadcastHandler) handleBroadcast(node *maelstrom.Node, msg *maelstrom.
 					Gossip:  &maelstrom.Gossip{Path: []string{}},
 					Message: msg.Body.Message,
 				},
-			}, nil, nil)
+			}, nil, func(response *maelstrom.Message) {
+				log.Stderrf("received ack: %s <= %s{%d} <= %s", node.Id(), response.Body.Type, response.Body.InReplyTo, response.Src)
+			})
 		}
 	}
 }
@@ -72,10 +75,17 @@ func (h *BroadcastHandler) handleBroadcastGossip(node *maelstrom.Node, msg *mael
 				node.SendMessage(&maelstrom.Message{
 					Dest: n,
 					Body: msg.Body,
-				}, nil, nil)
+				}, nil, func(response *maelstrom.Message) {
+					log.Stderrf("received ack: %s <= %s{%d} <= %s", node.Id(), response.Body.Type, response.Body.InReplyTo, response.Src)
+				})
 			}
 		}
 	}
+	node.SendMessage(&maelstrom.Message{
+		Body: maelstrom.MessageBody{
+			Type: "broadcast_gossip_ok",
+		},
+	}, msg, nil)
 }
 
 func (h *BroadcastHandler) handleRead(node *maelstrom.Node, msg *maelstrom.Message) {

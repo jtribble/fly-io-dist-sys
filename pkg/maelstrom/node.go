@@ -24,6 +24,7 @@ type Node struct {
 	outgoingMessages chan *Message
 	inFlightMessages sync.WaitGroup
 	nextMessageId    int
+	callbacks        Callbacks
 }
 
 func NewNode(handlers ...Handler) *Node {
@@ -34,6 +35,7 @@ func NewNode(handlers ...Handler) *Node {
 		handlers:         handlers,
 		nextMessageId:    1,
 		inFlightMessages: sync.WaitGroup{},
+		callbacks:        NewCallbacks(),
 	}
 }
 
@@ -41,14 +43,19 @@ func (n *Node) Id() string {
 	return n.id
 }
 
-func (n *Node) SendMessage(msg, inReplyTo *Message, _ func(response *Message)) {
+func (n *Node) SendMessage(msg, inReplyTo *Message, callback Callback) {
 	msg.Src = n.id
 	if inReplyTo != nil {
 		msg.Dest = inReplyTo.Src
 		msg.Body.InReplyTo = inReplyTo.Body.MsgId
 	}
-	msg.Body.MsgId = ptr.ToInt(n.nextMessageId)
-	n.nextMessageId += 1
+	if msg.Body.MsgId == nil {
+		msg.Body.MsgId = ptr.ToInt(n.nextMessageId)
+		n.nextMessageId += 1
+		n.callbacks.Register(msg, callback)
+	} else {
+		// This message is being retried
+	}
 	n.inFlightMessages.Add(1)
 	n.outgoingMessages <- msg
 }
@@ -57,6 +64,7 @@ func (n *Node) RunUntilInterrupted() {
 	osutils.RunUntilInterrupted(func(ctx context.Context, cancel context.CancelFunc) {
 		go n.handleIncomingMessages(ctx, cancel)
 		go n.handleOutgoingMessages()
+		go n.handleRetries(ctx)
 
 		<-ctx.Done()
 
@@ -87,6 +95,10 @@ func (n *Node) handleIncomingMessages(ctx context.Context, cancel context.Cancel
 					h.HandleMessage(n, msg)
 					handled = true
 				}
+			}
+			if callback := n.callbacks.Retrieve(msg.Body.InReplyTo); callback != nil {
+				callback(msg)
+				handled = true
 			}
 			if !handled {
 				n.SendMessage(&Message{
@@ -122,4 +134,19 @@ func (n *Node) writeMessageToStdout(msg *Message) {
 		return
 	}
 	log.Stdout(string(bytes))
+}
+
+func (n *Node) handleRetries(ctx context.Context) {
+	ticker := time.NewTicker(3 * time.Second)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			for _, msg := range n.callbacks.RetryableMessages(2 * time.Second) {
+				log.Stderrf("retrying message: %s => %s{%d} => %s", msg.Src, msg.Body.Type, msg.Body.MsgId, msg.Dest)
+				n.SendMessage(msg, nil, nil)
+			}
+		}
+	}
 }
