@@ -19,4 +19,4 @@ test: ## Run the simple test with test.json
 
 .PHONY: mtest
 mtest: bin ## Run the maelstrom test
-	maelstrom test -w broadcast --bin bin/node --node-count 5 --time-limit 20 --rate 10
+	../../maelstrom/maelstrom test -w broadcast --bin bin/node --node-count 5 --time-limit 20 --rate 10

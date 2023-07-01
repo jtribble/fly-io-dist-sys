@@ -19,4 +19,4 @@ test: ## Run the simple test with test.json
 
 .PHONY: mtest
 mtest: bin ## Run the maelstrom test
-	maelstrom test -w unique-ids --bin bin/node --time-limit 30 --rate 1000 --node-count 3 --availability total --nemesis partition --log-stderr
+	../../maelstrom/maelstrom test -w unique-ids --bin bin/node --time-limit 30 --rate 1000 --node-count 3 --availability total --nemesis partition --log-stderr
