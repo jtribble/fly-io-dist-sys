@@ -34,28 +34,28 @@ func (h *BroadcastHandler) HandleMessage(node *maelstrom.Node, msg *maelstrom.Me
 
 func (h *BroadcastHandler) handleBroadcast(node *maelstrom.Node, msg *maelstrom.Message) {
 	h.messages[*msg.Body.Message] = true
-	node.QueueReply(&maelstrom.Message{
+	node.SendMessage(&maelstrom.Message{
 		Body: maelstrom.MessageBody{
 			Type: "broadcast_ok",
 		},
-	}, msg)
+	}, msg, nil)
 }
 
 func (h *BroadcastHandler) handleRead(node *maelstrom.Node, msg *maelstrom.Message) {
 	messages := maps.Keys(h.messages)
-	node.QueueReply(&maelstrom.Message{
+	node.SendMessage(&maelstrom.Message{
 		Body: maelstrom.MessageBody{
 			Type:     "read_ok",
 			Messages: &messages,
 		},
-	}, msg)
+	}, msg, nil)
 }
 
 func (h *BroadcastHandler) handleTopology(node *maelstrom.Node, msg *maelstrom.Message) {
 	h.topology = *msg.Body.Topology
-	node.QueueReply(&maelstrom.Message{
+	node.SendMessage(&maelstrom.Message{
 		Body: maelstrom.MessageBody{
 			Type: "topology_ok",
 		},
-	}, msg)
+	}, msg, nil)
 }

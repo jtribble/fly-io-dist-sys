@@ -5,7 +5,6 @@ import (
 )
 
 func main() {
-	node := maelstrom.NewNode()
-	node.RegisterHandler(&EchoHandler{})
+	node := maelstrom.NewNode(&EchoHandler{})
 	node.RunUntilInterrupted()
 }

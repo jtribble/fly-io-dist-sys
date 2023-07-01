@@ -14,13 +14,13 @@ func (h *InitHandler) HandlesMessageType(msgType string) bool {
 
 func (h *InitHandler) HandleMessage(node *Node, msg *Message) {
 	if !h.initialized {
-		node.Id = *msg.Body.NodeId
-		node.Peers = slices.Without(*msg.Body.NodeIds, node.Id)
-		node.QueueReply(&Message{
+		node.id = *msg.Body.NodeId
+		node.peers = slices.Without(*msg.Body.NodeIds, node.id)
+		node.SendMessage(&Message{
 			Body: MessageBody{
 				Type: "init_ok",
 			},
-		}, msg)
+		}, msg, nil)
 	}
 	h.initialized = true
 }

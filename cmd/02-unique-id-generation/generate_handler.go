@@ -16,11 +16,11 @@ func (h *GenerateHandler) HandlesMessageType(msgType string) bool {
 }
 
 func (h *GenerateHandler) HandleMessage(node *maelstrom.Node, msg *maelstrom.Message) {
-	node.QueueReply(&maelstrom.Message{
+	node.SendMessage(&maelstrom.Message{
 		Body: maelstrom.MessageBody{
 			Type: "generate_ok",
-			Id:   ptr.ToString(fmt.Sprintf("%s-%d", node.Id, h.nextId)),
+			Id:   ptr.ToString(fmt.Sprintf("%s-%d", node.Id(), h.nextId)),
 		},
-	}, msg)
+	}, msg, nil)
 	h.nextId += 1
 }

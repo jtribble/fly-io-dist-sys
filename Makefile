@@ -13,6 +13,7 @@ setup: ## Set up the repo for local development
 	bzip2 -d maelstrom.tar.bz2
 	tar -xf maelstrom.tar
 	rm maelstrom.tar
+	mv maelstrom .maelstrom
 
 .PHONY: test
 test: ## Run the simple tests for every cmd

@@ -17,44 +17,36 @@ import (
 )
 
 type Node struct {
-	Id    string
-	Peers []string
-
+	id               string
+	peers            []string
+	handlers         []Handler
 	incomingMessages chan *Message
 	outgoingMessages chan *Message
-
-	handlers []Handler
-
-	nextMessageId    int
 	inFlightMessages sync.WaitGroup
+	nextMessageId    int
 }
 
-func NewNode() *Node {
+func NewNode(handlers ...Handler) *Node {
+	handlers = append([]Handler{&InitHandler{}}, handlers...)
 	return &Node{
 		incomingMessages: make(chan *Message),
 		outgoingMessages: make(chan *Message),
-		handlers:         []Handler{&InitHandler{}},
+		handlers:         handlers,
 		nextMessageId:    1,
 		inFlightMessages: sync.WaitGroup{},
 	}
 }
 
-func (n *Node) RegisterHandler(h Handler) {
-	n.handlers = append(n.handlers, h)
+func (n *Node) Id() string {
+	return n.id
 }
 
-func (n *Node) QueueReply(msg, inReplyTo *Message) {
-	msg.Src = n.Id
-	msg.Dest = inReplyTo.Src
-	msg.Body.InReplyTo = inReplyTo.Body.MsgId
-	msg.Body.MsgId = ptr.ToInt(n.nextMessageId)
-	n.nextMessageId += 1
-	n.inFlightMessages.Add(1)
-	n.outgoingMessages <- msg
-}
-
-func (n *Node) SendMessage(msg *Message) {
-	msg.Src = n.Id
+func (n *Node) SendMessage(msg, inReplyTo *Message, _ func(response *Message)) {
+	msg.Src = n.id
+	if inReplyTo != nil {
+		msg.Dest = inReplyTo.Src
+		msg.Body.InReplyTo = inReplyTo.Body.MsgId
+	}
 	msg.Body.MsgId = ptr.ToInt(n.nextMessageId)
 	n.nextMessageId += 1
 	n.inFlightMessages.Add(1)
@@ -97,12 +89,12 @@ func (n *Node) handleIncomingMessages(ctx context.Context, cancel context.Cancel
 				}
 			}
 			if !handled {
-				n.QueueReply(&Message{
+				n.SendMessage(&Message{
 					Body: MessageBody{
 						Type: "error",
 						Code: errors.NotSupported,
 					},
-				}, msg)
+				}, msg, nil)
 			}
 		case err := <-lr.Errs:
 			log.Stderrf("failed to read from stdin: %s", err)

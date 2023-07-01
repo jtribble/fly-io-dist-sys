@@ -10,10 +10,10 @@ func (h *EchoHandler) HandlesMessageType(msgType string) bool {
 }
 
 func (h *EchoHandler) HandleMessage(node *maelstrom.Node, msg *maelstrom.Message) {
-	node.QueueReply(&maelstrom.Message{
+	node.SendMessage(&maelstrom.Message{
 		Body: maelstrom.MessageBody{
 			Type: "echo_ok",
 			Echo: msg.Body.Echo,
 		},
-	}, msg)
+	}, msg, nil)
 }
